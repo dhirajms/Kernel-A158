@@ -1,6 +1,6 @@
 1. Kernel configuration files
    arch/arm/configs:
-   Nokia 1 (TA-1047/TA-1060/TA-1056/TA-1079/TA-1066): FRT_defconfig
+   Moto C Plus : A158_defconfig
 
 2. How to build
 
