@@ -855,7 +855,7 @@ cust_gyro@0 {
 };
 /* USB GPIO Kernal Standardization end */
 
-#include <A158_cust.dtsi>
+#include "A158_cust.dtsi"
 /*End of this file, DO NOT ADD ANYTHING HERE*/
 
 
