@@ -37,4 +37,4 @@ make -C $PWD O=$PWD/out ARCH=arm A158_defconfig
 
 
 #CompileNow
-make -j64 -C $PWD O=$PWD/out ARCH=arm
+make -j2 -C $PWD O=$PWD/out ARCH=arm
