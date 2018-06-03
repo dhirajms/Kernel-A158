@@ -8191,9 +8191,6 @@ uint32_t DISP_GetDensity(void)
 		return 0;
 	}
 
-	if (pgc->plcm->params)
-		return pgc->plcm->params->density;
-
 	DISPERR("lcm_params is null!\n");
 	return 0;
 }
