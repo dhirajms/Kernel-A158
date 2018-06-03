@@ -105,12 +105,12 @@ void AudDrv_GPIO_probe(void *dev)
 	int ret;
 	int i = 0;
 
-	pr_warn("%s\n", __func__);
+	pr_debug("%s\n", __func__);
 
 	pinctrlaud = devm_pinctrl_get(dev);
 	if (IS_ERR(pinctrlaud)) {
 		ret = PTR_ERR(pinctrlaud);
-		pr_err("Cannot find pinctrlaud!\n");
+		pr_warn("Cannot find pinctrlaud!\n");
 		return;
 	}
 
@@ -118,8 +118,8 @@ void AudDrv_GPIO_probe(void *dev)
 		aud_gpios[i].gpioctrl = pinctrl_lookup_state(pinctrlaud, aud_gpios[i].name);
 		if (IS_ERR(aud_gpios[i].gpioctrl)) {
 			ret = PTR_ERR(aud_gpios[i].gpioctrl);
-			pr_err("%s pinctrl_lookup_state %s fail %d\n", __func__, aud_gpios[i].name,
-			       ret);
+			pr_warn("%s pinctrl_lookup_state %s fail %d\n",
+				__func__, aud_gpios[i].name, ret);
 		} else {
 			aud_gpios[i].gpio_prepare = true;
 		}
@@ -216,14 +216,14 @@ int AudDrv_GPIO_PMIC_Select(int bEnable)
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_PMIC_MODE1].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_PMIC_MODE1] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_PMIC_MODE1] pins\n");
 		}
 	} else {
 		if (aud_gpios[GPIO_PMIC_MODE0].gpio_prepare) {
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_PMIC_MODE0].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_PMIC_MODE0] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_PMIC_MODE0] pins\n");
 		}
 
 	}
@@ -239,19 +239,46 @@ int AudDrv_GPIO_I2S_Select(int bEnable)
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_I2S_MODE1].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_I2S_MODE1] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_I2S_MODE1] pins\n");
 		}
 	} else {
 		if (aud_gpios[GPIO_I2S_MODE0].gpio_prepare) {
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_I2S_MODE0].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_I2S_MODE0] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_I2S_MODE0] pins\n");
 		}
 
 	}
 	return retval;
 }
+
+/* Vanzo:yuntaohe on: Wed, 23 Dec 2015 14:41:13 +0800
+ */
+/* AW8736 PA output power mode control */
+#define AW8736_MODE_CTRL
+
+#ifdef AW8736_MODE_CTRL
+#define GAP (2)         /* unit: us */
+#define AW8736_MODE 3
+int AudDrv_aw8736_mode_ctrl(int mode)
+{
+    int i;
+    int ret=0;
+    printk("%s line %d mode %d\n",__func__,__LINE__,mode);
+    for(i=1; i<mode; i++) {
+      ret = pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_EXTAMP_HIGH].gpioctrl);
+      udelay(GAP);
+      ret = pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_EXTAMP_LOW].gpioctrl);
+      udelay(GAP);
+    }
+
+    ret = pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_EXTAMP_HIGH].gpioctrl);
+
+    return ret;
+}
+#endif
+// End of Vanzo:yuntaohe
 
 int AudDrv_GPIO_EXTAMP_Select(int bEnable)
 {
@@ -259,17 +286,21 @@ int AudDrv_GPIO_EXTAMP_Select(int bEnable)
 
 	if (bEnable == 1) {
 		if (aud_gpios[GPIO_EXTAMP_HIGH].gpio_prepare) {
+        #ifdef AW8736_MODE_CTRL
+            retval = AudDrv_aw8736_mode_ctrl(AW8736_MODE);
+        #else
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_EXTAMP_HIGH].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_EXTAMP_HIGH] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_EXTAMP_HIGH] pins\n");
+        #endif
 		}
 	} else {
 		if (aud_gpios[GPIO_EXTAMP_LOW].gpio_prepare) {
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_EXTAMP_LOW].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_EXTAMP_LOW] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_EXTAMP_LOW] pins\n");
 		}
 
 	}
@@ -285,14 +316,14 @@ int AudDrv_GPIO_EXTAMP2_Select(int bEnable)
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_EXTAMP2_HIGH].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_EXTAMP2_HIGH] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_EXTAMP2_HIGH] pins\n");
 		}
 	} else {
 		if (aud_gpios[GPIO_EXTAMP2_LOW].gpio_prepare) {
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_EXTAMP2_LOW].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_EXTAMP2_LOW] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_EXTAMP2_LOW] pins\n");
 		}
 
 	}
@@ -308,14 +339,14 @@ int AudDrv_GPIO_RCVSPK_Select(int bEnable)
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_RCVSPK_HIGH].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_RCVSPK_HIGH] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_RCVSPK_HIGH] pins\n");
 		}
 	} else {
 		if (aud_gpios[GPIO_RCVSPK_LOW].gpio_prepare) {
 			retval =
 			    pinctrl_select_state(pinctrlaud, aud_gpios[GPIO_RCVSPK_LOW].gpioctrl);
 			if (retval)
-				pr_err("could not set aud_gpios[GPIO_RCVSPK_LOW] pins\n");
+				pr_warn("could not set aud_gpios[GPIO_RCVSPK_LOW] pins\n");
 		}
 
 	}
