@@ -22,12 +22,6 @@
 
 #define FRAME_WIDTH (480)
 #define FRAME_HEIGHT (854)
-#define LCM_DENSITY	(240)
-
-/* physical size in um */
-#define LCM_PHYSICAL_WIDTH	(59500)
-#define LCM_PHYSICAL_HEIGHT	(104700)
-
 #define REGFLAG_DELAY 0xFE
 #define REGFLAG_END_OF_TABLE 0xFF /* END OF REGISTERS MARKER */
 
@@ -127,7 +121,7 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{ 0x35, 1, {0x00} },
 
 	/* set TE Line */
-	{0xB7, 3, {0x00, 0x00, 0x30} },
+	/* {0xB7, 3, {0x00, 0x00, 0x30}}, */
 
 	{ 0xBF, 4, {0x05, 0x60, 0x02, 0x00} },
 
@@ -261,12 +255,6 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->type = LCM_TYPE_DSI;
 	params->width = FRAME_WIDTH;
 	params->height = FRAME_HEIGHT;
-	params->density = LCM_DENSITY;
-
-	params->physical_width = LCM_PHYSICAL_WIDTH/1000;
-	params->physical_height = LCM_PHYSICAL_HEIGHT/1000;
-	params->physical_width_um = LCM_PHYSICAL_WIDTH;
-	params->physical_height_um = LCM_PHYSICAL_HEIGHT;
 
 	/* enable tearing-free */
 	params->dbi.te_mode = LCM_DBI_TE_MODE_VSYNC_ONLY;

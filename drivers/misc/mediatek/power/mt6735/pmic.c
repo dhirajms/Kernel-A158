@@ -164,16 +164,6 @@ static DEFINE_MUTEX(pmic_access_mutex);
 /*--- Global suspend state ---*/
 static bool pmic_suspend_state;
 
-void pmic_md_power_on(void)
-{
-	/*ALPS02057700 workaround:
-	* Power on VLTE for system power off backlight work normal
-	*/
-	PMICLOG("md_power_on:set VLTE on,bit0,1\n");
-	pmic_config_interface(0x04D6, 0x1, 0x1, 0); /* bit[0] =>1'b1 */
-	udelay(200);
-}
-
 unsigned int pmic_read_interface(unsigned int RegNum, unsigned int *val, unsigned int MASK,
 				 unsigned int SHIFT)
 {
@@ -574,50 +564,24 @@ static ssize_t store_pmic_access(struct device *dev, struct device_attribute *at
 	unsigned int reg_value = 0;
 	unsigned int reg_address = 0;
 
-	if ((size > 10) || (size < 5)) {
-		/* pr_err("[store_pmic_access] ERR buf is %s [%zu]\n", buf, size); */
-		return -1;
-	}
 	pr_err("[store_pmic_access]\n");
 	if (buf != NULL && size != 0) {
-		/* pr_err("[store_pmic_access] buf is %s %zu\n", buf, size); */
+		pr_err("[store_pmic_access] buf is %s\n", buf);
 		/*reg_address = simple_strtoul(buf, &pvalue, 16); */
 
 		pvalue = (char *)buf;
 		if (size > 5) {
 			addr = strsep(&pvalue, " ");
-			if (addr != NULL) {
-				ret = kstrtou32(addr, 16, (unsigned int *)&reg_address);
-				if (ret) {
-					pr_err("[store_pmic_access] reg_addr ERROR\n");
-					return -1;
-				}
-			} else {
-				pr_err("[store_pmic_access] addr empty\n");
-				return -1;
-			}
-		} else {
+			ret = kstrtou32(addr, 16, (unsigned int *)&reg_address);
+		} else
 			ret = kstrtou32(pvalue, 16, (unsigned int *)&reg_address);
-			if (ret) {
-				pr_err("[store_pmic_access] reg_addr ERROR\n");
-				return -1;
-			}
-		}
 
 		if (size > 5) {
-			/*reg_value = simple_strtoul((pvalue + 1), NULL, 16);*/
-			/*pvalue = (char *)buf + 1;*/
-			val =  strsep(&pvalue, " ");
-			if (val != NULL) {
-				ret = kstrtou32(val, 16, (unsigned int *)&reg_value);
-				if (ret) {
-					pr_err("[store_pmic_access] reg_dat ERROR\n");
-					return -1;
-				}
-			} else {
-				pr_err("[store_pmic_access] val empty\n");
-				return -1;
-			}
+			/*reg_value = simple_strtoul((pvalue + 1), NULL, 16); */
+			/*pvalue = (char *)buf + 1; */
+			val = strsep(&pvalue, " ");
+			ret = kstrtou32(val, 16, (unsigned int *)&reg_value);
+
 			pr_err("[store_pmic_access] write PMU reg 0x%x with value 0x%x !\n",
 			       reg_address, reg_value);
 			ret = pmic_config_interface(reg_address, reg_value, 0xFFFF, 0x0);
@@ -1448,11 +1412,11 @@ out:
 
 static int pmic_mt_cust_remove(struct platform_device *pdev)
 {
-	/*platform_driver_unregister(&mt_pmic_driver_probe); */
+	/*platform_driver_unregister(&mt_pmic_driver); */
 	return 0;
 }
 
-static struct platform_driver mt_pmic_driver_probe = {
+static struct platform_driver mt_pmic_driver = {
 	.driver = {
 		   .name = "pmic_regulator",
 		   .owner = THIS_MODULE,
@@ -3422,25 +3386,13 @@ static void pmic_int_handler(void)
 {
 	unsigned char i, j;
 	unsigned int ret;
-	static DEFINE_RATELIMIT_STATE(ratelimit, 1 * HZ, 4);
 
 	for (i = 0; i < ARRAY_SIZE(interrupts); i++) {
 		unsigned int int_status_val = 0;
 
 		int_status_val = upmu_get_reg_value(interrupts[i].address);
-		if (int_status_val) {
-			if (interrupts[i].address == MT6328_INT_STATUS0 &&
-			    (int_status_val == 0x40 || int_status_val == 0x80)) {
-				if (__ratelimit(&ratelimit)) {
-					/* limit log of BAT_H/BAT_L */
-					pr_err(PMICTAG "[PMIC_INT] addr[0x%x]=0x%x\n",
-						interrupts[i].address, int_status_val);
-				}
-			} else {
-				pr_err(PMICTAG "[PMIC_INT] addr[0x%x]=0x%x\n",
-					interrupts[i].address, int_status_val);
-			}
-		}
+		if (int_status_val)
+			pr_err(PMICTAG "[PMIC_INT] addr[0x%x]=0x%x\n", interrupts[i].address, int_status_val);
 
 		for (j = 0; j < PMIC_INT_WIDTH; j++) {
 			if ((int_status_val) & (1 << j)) {
@@ -3802,7 +3754,6 @@ void pmic_setting_for_co_tsx(void)
 	unsigned int ret = 0;
 	unsigned int devinfo = get_devinfo_with_index(47) >> 25;
 
-	pr_info("[%s] devinfo=0x%x\n", __func__, devinfo);
 	switch (devinfo) {
 	case 0x41:
 	case 0x42:
@@ -3818,10 +3769,6 @@ void pmic_setting_for_co_tsx(void)
 	case 0x52:
 	case 0x53:
 		/* Denali-2+ MT6737 */
-
-	case 0x54:
-	case 0x55:
-		/* Denali MT6737WH MT6737CH */
 		ret = pmic_config_interface(0x14, 0x1, 0x1, 5);
 		ret = pmic_config_interface(0x14, 0x1, 0x1, 7);
 		ret = pmic_config_interface(0x25A, 0x0, 0x1, 10);
@@ -4111,6 +4058,11 @@ void PMIC_INIT_SETTING_V1(void)
 		ret = pmic_config_interface(0xEA6, 0x1, 0x3, 6);
 		ret = pmic_config_interface(0xEB8, 0x1, 0x1, 14);
 		ret = pmic_config_interface(0xF4A, 0xB, 0xF, 4);
+		//zhanyoufei@wind-mobi.com 20161215 begin
+		#ifdef CONFIG_WIND_BATTERY_MODIFY
+		ret = pmic_config_interface(0xF48,0x0,0x1,0);
+		#endif
+		//zhanyoufei@wind-mobi.com 20161215 end
 		ret = pmic_config_interface(0xF54, 0x0, 0x7, 1);
 		ret = pmic_config_interface(0xF62, 0x3, 0xF, 0);
 		ret = pmic_config_interface(0xF6C, 0x2, 0x1F, 0);
@@ -4818,7 +4770,7 @@ static int fb_early_init_dt_get_chosen(unsigned long node, const char *uname, in
 	return 1;
 }
 #endif				/*end of #ifdef DLPT_FEATURE_SUPPORT */
-static int __init pmic_mt_probe(struct platform_device *dev)
+static int pmic_mt_probe(struct platform_device *dev)
 {
 	int ret_device_file = 0, i;
 #ifdef DLPT_FEATURE_SUPPORT
@@ -4997,7 +4949,6 @@ static int pmic_mt_remove(struct platform_device *dev)
 static void pmic_mt_shutdown(struct platform_device *dev)
 {
 	PMICLOG("******** MT pmic driver shutdown!! ********\n");
-	pmic_md_power_on();
 }
 
 static int pmic_mt_suspend(struct platform_device *dev, pm_message_t state)
@@ -5085,7 +5036,7 @@ struct platform_device pmic_mt_device = {
 	.id = -1,
 };
 
-static struct platform_driver pmic_mt_driver_probe = {
+static struct platform_driver pmic_mt_driver = {
 	.probe = pmic_mt_probe,
 	.remove = pmic_mt_remove,
 	.shutdown = pmic_mt_shutdown,
@@ -5153,6 +5104,7 @@ static int __init pmic_mt_init(void)
 {
 	int ret;
 
+#ifdef BATTERY_PERCENT_PROTECT
 #if !defined CONFIG_HAS_WAKELOCKS
 	wakeup_source_init(&pmicThread_lock, "pmicThread_lock_mt6328 wakelock");
 	wakeup_source_init(&bat_percent_notify_lock, "bat_percent_notify_lock wakelock");
@@ -5161,6 +5113,7 @@ static int __init pmic_mt_init(void)
 	wake_lock_init(&bat_percent_notify_lock, WAKE_LOCK_SUSPEND,
 		       "bat_percent_notify_lock wakelock");
 #endif
+#endif				/* #ifdef BATTERY_PERCENT_PROTECT */
 
 #ifdef DLPT_FEATURE_SUPPORT
 #if !defined CONFIG_HAS_WAKELOCKS
@@ -5180,7 +5133,7 @@ static int __init pmic_mt_init(void)
 		PMICLOG("****[pmic_mt_init] Unable to device register(%d)\n", ret);
 		return ret;
 	}
-	ret = platform_driver_register(&pmic_mt_driver_probe);
+	ret = platform_driver_register(&pmic_mt_driver);
 	if (ret) {
 		PMICLOG("****[pmic_mt_init] Unable to register driver (%d)\n", ret);
 		return ret;
@@ -5190,7 +5143,7 @@ static int __init pmic_mt_init(void)
 		PMICLOG("****[pmic_mt_init] mt_pmic_device Unable to device register(%d)\n", ret);
 		return ret;
 	}
-	ret = platform_driver_register(&mt_pmic_driver_probe);
+	ret = platform_driver_register(&mt_pmic_driver);
 	if (ret) {
 		PMICLOG("****[pmic_mt_init] Unable to register driver by DT(%d)\n", ret);
 		return ret;
@@ -5204,7 +5157,7 @@ static int __init pmic_mt_init(void)
 		PMICLOG("****[pmic_mt_init] Unable to device register(%d)\n", ret);
 		return ret;
 	}
-	ret = platform_driver_register(&pmic_mt_driver_probe);
+	ret = platform_driver_register(&pmic_mt_driver);
 	if (ret) {
 		PMICLOG("****[pmic_mt_init] Unable to register driver (%d)\n", ret);
 		return ret;
@@ -5223,7 +5176,7 @@ static void __exit pmic_mt_exit(void)
 {
 #if !defined CONFIG_MTK_LEGACY
 #ifdef CONFIG_OF
-	platform_driver_unregister(&mt_pmic_driver_probe);
+	platform_driver_unregister(&mt_pmic_driver);
 #endif
 #endif				/* End of #if !defined CONFIG_MTK_LEGACY */
 }

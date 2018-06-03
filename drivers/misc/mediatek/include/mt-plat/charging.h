@@ -54,7 +54,6 @@
 #ifndef CONFIG_ARCH_MT8173
 #include <mach/mt_charging.h>
 #endif
-#include <linux/types.h>
 
 /* ============================================================ */
 /* define */
@@ -142,18 +141,6 @@ typedef enum {
 	CHARGING_CMD_RUN_AICL,
 	CHARGING_CMD_SET_IRCMP_RESISTOR,
 	CHARGING_CMD_SET_IRCMP_VOLT_CLAMP,
-	CHARGING_CMD_ENABLE_DC_VBUSOV,
-	CHARGING_CMD_SET_DC_VBUSOV,
-	CHARGING_CMD_ENABLE_DC_VBUSOC,
-	CHARGING_CMD_SET_DC_VBUSOC,
-	CHARGING_CMD_ENABLE_DC_VBATOV,
-	CHARGING_CMD_SET_DC_VBATOV,
-	CHARGING_CMD_GET_IS_DC_ENABLE,
-	CHARGING_CMD_SET_PEP20_EFFICIENCY_TABLE,
-	CHARGING_CMD_ENABLE_CHR_TYPE_DET,
-	CHARGING_CMD_ENABLE_DISCHARGE,
-	CHARGING_CMD_GET_TBUS,
-	CHARGING_CMD_GET_TBAT,
 	CHARGING_CMD_NUMBER
 } CHARGING_CTRL_CMD;
 
@@ -619,7 +606,6 @@ extern unsigned int upmu_get_reg_value(unsigned int reg);
 extern void Charger_Detect_Init(void);
 extern void Charger_Detect_Release(void);
 extern int hw_charging_get_charger_type(void);
-extern void hw_bc11_dcd_release(void) __attribute__((weak));
 extern void mt_power_off(void);
 extern unsigned int mt6311_get_chip_id(void);
 extern int is_mt6311_exist(void);
@@ -627,8 +613,6 @@ extern int is_mt6311_sw_ready(void);
 
 extern void hw_charging_enable_dp_voltage(int ison);
 
-/* For RT5735A SDA low workaround */
-extern void battery_disable_batfet(void);
 
 /* switch charger */
 extern void switch_charger_set_vindpm(unsigned int chr_v);
@@ -658,15 +642,8 @@ extern int mtk_chr_get_ibat(unsigned int *ibat);
 extern int mtk_chr_get_vbus(unsigned int *vbus);
 extern int mtk_chr_get_aicr(unsigned int *aicr);
 extern int mtk_chr_is_charger_exist(unsigned char *exist);
-extern int mtk_chr_enable_power_path(unsigned char en);
+extern int mtk_chr_enable_direct_charge(unsigned char charging_enable);
 extern int mtk_chr_enable_charge(unsigned char charging_enable);
 extern int mtk_chr_reset_aicr_upper_bound(void);
-extern int mtk_chr_enable_chr_type_det(unsigned char en);
-extern int mtk_chr_pd_enable_power_path(unsigned char enable);
-extern int mtk_chr_enable_discharge(bool enable);
-extern int mtk_chr_enable_hv_charging(bool en);
-extern bool mtk_chr_is_hv_charging_enable(void);
-extern int mtk_chr_enable_kpoc_shutdown(bool en);
-extern bool mtk_chr_is_kpoc_shutdown_enable(void);
 
 #endif	/* #ifndef _CHARGING_H */

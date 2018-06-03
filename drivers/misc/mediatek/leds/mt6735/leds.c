@@ -40,8 +40,6 @@
 /* #include <linux/aee.h> */
 #endif
 
-#include <ddp_gamma.h>
-
 #include <mt-plat/mt_pwm.h>
 #include <mt-plat/upmu_common.h>
 
@@ -689,6 +687,43 @@ int mt_backlight_set_pwm(int pwm_num, u32 level, u32 div,
 	}
 }
 
+//luminjie@wind-mobi.com 20161110 begin
+int flashlight_set_pwm_old(u32 hduration, u32 lduration, u32 level)
+{
+	struct pwm_spec_config pwm_setting;
+//luminjie@wind-mobi.com 20161207 begin
+	pwm_setting.pwm_no = 2;//liuying 20150206
+//luminjie@wind-mobi.com 20161207 end
+	pwm_setting.mode = PWM_MODE_OLD;//PWM_MODE_FIFO; // New mode fifo and periodical mode
+	pwm_setting.pmic_pad = false;
+	pwm_setting.clk_div = CLK_DIV2;	//liuying@wind-mobi.com 20150312 for mt6732 use 26Mhz clk source
+	pwm_setting.clk_src = PWM_CLK_OLD_MODE_BLOCK;//PWM_CLK_NEW_MODE_BLOCK;
+
+	pwm_setting.PWM_MODE_OLD_REGS.IDLE_VALUE = 0;
+	pwm_setting.PWM_MODE_OLD_REGS.GUARD_VALUE = 0;
+	pwm_setting.PWM_MODE_OLD_REGS.GDURATION = 0;
+	pwm_setting.PWM_MODE_OLD_REGS.WAVE_NUM = 0;
+	pwm_setting.PWM_MODE_OLD_REGS.DATA_WIDTH = 99; // 100 level
+	pwm_setting.PWM_MODE_OLD_REGS.THRESH = level;
+
+
+	//set level
+	LEDS_DEBUG("flashlight_set_pwm_old:level is %d\n", level);
+	if(level >0 && level < 100)
+	{
+		pwm_set_spec_config(&pwm_setting);
+		LEDS_DEBUG("flashlight_set_pwm_old: old mode: thres/data_width is %d/%d\n", pwm_setting.PWM_MODE_OLD_REGS.THRESH, pwm_setting.PWM_MODE_OLD_REGS.DATA_WIDTH);
+	}
+	else
+	{
+		LEDS_DEBUG("flashlight_set_pwm_old Error level \n");
+		mt_pwm_disable(pwm_setting.pwm_no, pwm_setting.pmic_pad);
+	}
+
+	return 0;
+}
+//luminjie@wind-mobi.com 20161110 begin
+
 void mt_led_pwm_disable(int pwm_num)
 {
 	struct cust_mt65xx_led *cust_led_list = get_cust_led_dtsi();
@@ -873,13 +908,7 @@ int mt_mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level)
 		/* warning for this API revork */
 		return ((cust_brightness_set) (cust->data)) (level, bl_div_hal);
 
-    case MT65XX_LED_MODE_CUST_BLS_PWM:
-#if (defined(VANZO_DELAY_BACKLIGHT))
-        if((bl_brightness_hal ==0)&&(level != 0))
-        {
-          msleep(200);
-        }
-#endif
+	case MT65XX_LED_MODE_CUST_BLS_PWM:
 		if (strcmp(cust->name, "lcd-backlight") == 0)
 			bl_brightness_hal = level;
 		return ((cust_set_brightness) (cust->data)) (level);
@@ -929,10 +958,6 @@ void mt_mt65xx_led_set(struct led_classdev *led_cdev, enum led_brightness level)
 			    ("Set Backlight directly %d at time %lu, mapping level is %d\n",
 			     led_data->level, jiffies, level);
 			/* mt_mt65xx_led_set_cust(&led_data->cust, led_data->level); */
-			disp_pq_notify_backlight_changed((((1 <<
-							     MT_LED_INTERNAL_LEVEL_BIT_CNT)
-							    - 1) * level +
-							   127) / 255);
 			disp_aal_notify_backlight_changed((((1 <<
 							     MT_LED_INTERNAL_LEVEL_BIT_CNT)
 							    - 1) * level +
@@ -959,10 +984,6 @@ void mt_mt65xx_led_set(struct led_classdev *led_cdev, enum led_brightness level)
 			LEDS_DEBUG
 			    ("Set Backlight directly %d at time %lu, mapping level is %d\n",
 			     led_data->level, jiffies, level);
-			disp_pq_notify_backlight_changed((((1 <<
-							     MT_LED_INTERNAL_LEVEL_BIT_CNT)
-							    - 1) * level +
-							   127) / 255);
 			if (MT65XX_LED_MODE_CUST_BLS_PWM == led_data->cust.mode) {
 				mt_mt65xx_led_set_cust(&led_data->cust,
 						       ((((1 <<

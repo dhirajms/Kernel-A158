@@ -2141,37 +2141,37 @@ BOOL GC2145MIPI_set_param_exposure(UINT16 para)
 		
 		case AE_EV_COMP_n30:
 			GC2145MIPI_SET_PAGE1;
-			GC2145MIPI_write_cmos_sensor(0x13, 0x65);
+			GC2145MIPI_write_cmos_sensor(0x13,0x45);
 			GC2145MIPI_SET_PAGE0;
 		break;
 		case AE_EV_COMP_n20:
 			GC2145MIPI_SET_PAGE1;
-			GC2145MIPI_write_cmos_sensor(0x13, 0x70);
+			GC2145MIPI_write_cmos_sensor(0x13,0x55);
 			GC2145MIPI_SET_PAGE0;
 		break;
 		case AE_EV_COMP_n10:
 			GC2145MIPI_SET_PAGE1;
-			GC2145MIPI_write_cmos_sensor(0x13, 0x75);
+			GC2145MIPI_write_cmos_sensor(0x13,0x65);
 			GC2145MIPI_SET_PAGE0;
 		break;
 		case AE_EV_COMP_00:
 			GC2145MIPI_SET_PAGE1;
-			GC2145MIPI_write_cmos_sensor(0x13, 0x7b);
+			GC2145MIPI_write_cmos_sensor(0x13,0x75);
 			GC2145MIPI_SET_PAGE0;
 		break;
 		case AE_EV_COMP_10:
 			GC2145MIPI_SET_PAGE1;
-			GC2145MIPI_write_cmos_sensor(0x13, 0x85);
+			GC2145MIPI_write_cmos_sensor(0x13,0x85);
 			GC2145MIPI_SET_PAGE0;
 		break;
 		case AE_EV_COMP_20:
 			GC2145MIPI_SET_PAGE1;
-			GC2145MIPI_write_cmos_sensor(0x13, 0x90);
+			GC2145MIPI_write_cmos_sensor(0x13,0x95);
 			GC2145MIPI_SET_PAGE0;
 		break;
 		case AE_EV_COMP_30:
 			GC2145MIPI_SET_PAGE1;
-			GC2145MIPI_write_cmos_sensor(0x13, 0x95);
+			GC2145MIPI_write_cmos_sensor(0x13,0xa5);
 			GC2145MIPI_SET_PAGE0;
 		break;
 		default:
@@ -2254,51 +2254,22 @@ UINT32 GC2145MIPIYUVSensorSetting(FEATURE_ID iCmd, UINT16 iPara)
 
 UINT32 GC2145MIPIYUVSetVideoMode(uintptr_t u2FrameRate)
 {
-    /*kal_uint8 iTemp;
-    * to fix VSYNC, to fix frame rate
-    *SENSORDB("Set YUV Video Mode\n"); */
+  //  kal_uint8 iTemp;
+    /* to fix VSYNC, to fix frame rate */
+    //SENSORDB("Set YUV Video Mode \n");  
 
-	if (u2FrameRate == 15) {
-		GC2145MIPI_write_cmos_sensor(0xfe , 0x00);
-		GC2145MIPI_write_cmos_sensor(0x05 , 0x02);
-		GC2145MIPI_write_cmos_sensor(0x06 , 0xf5);
-		GC2145MIPI_write_cmos_sensor(0x07 , 0x00);
-		GC2145MIPI_write_cmos_sensor(0x08 , 0x20);
-		GC2145MIPI_write_cmos_sensor(0xfe , 0x01);
-		GC2145MIPI_write_cmos_sensor(0x25 , 0x00);
-		GC2145MIPI_write_cmos_sensor(0x26 , 0xbe);
-		GC2145MIPI_write_cmos_sensor(0x27 , 0x03);
-		GC2145MIPI_write_cmos_sensor(0x28 , 0xb6);  /*15fps*/
-		GC2145MIPI_write_cmos_sensor(0x29 , 0x03);
-		GC2145MIPI_write_cmos_sensor(0x2a , 0xb6);  /*15fps*/
-		GC2145MIPI_write_cmos_sensor(0x2b , 0x03);
-		GC2145MIPI_write_cmos_sensor(0x2c , 0xb6);  /*15fps*/
-		GC2145MIPI_write_cmos_sensor(0x2d , 0x03);
-		GC2145MIPI_write_cmos_sensor(0x2e , 0xb6);  /*15fps*/
-		GC2145MIPI_write_cmos_sensor(0xfe , 0x00);
-	} else if (u2FrameRate == 20) {
-		GC2145MIPI_write_cmos_sensor(0xfe , 0x00);
-		GC2145MIPI_write_cmos_sensor(0x05 , 0x01);
-		GC2145MIPI_write_cmos_sensor(0x06 , 0x56);
-		GC2145MIPI_write_cmos_sensor(0x07 , 0x00);
-		GC2145MIPI_write_cmos_sensor(0x08 , 0x32);
-		GC2145MIPI_write_cmos_sensor(0xfe , 0x01);
-		GC2145MIPI_write_cmos_sensor(0x25 , 0x00);
-		GC2145MIPI_write_cmos_sensor(0x26 , 0xfa);
-		GC2145MIPI_write_cmos_sensor(0x27 , 0x04);
-		GC2145MIPI_write_cmos_sensor(0x28 , 0xe2);  /*20fps*/
-		GC2145MIPI_write_cmos_sensor(0x29 , 0x04);
-		GC2145MIPI_write_cmos_sensor(0x2a , 0xe2);  /*20fps*/
-		GC2145MIPI_write_cmos_sensor(0x2b , 0x04);
-		GC2145MIPI_write_cmos_sensor(0x2c , 0xe2);  /*20fps*/
-		GC2145MIPI_write_cmos_sensor(0x2d , 0x04);
-		GC2145MIPI_write_cmos_sensor(0x2e , 0xe2);  /*20fps*/
-		GC2145MIPI_write_cmos_sensor(0xfe , 0x00);
-	} else {
-		SENSORDB("Wrong frame rate setting\n");
-	}
-	GC2145MIPI_VEDIO_encode_mode = KAL_TRUE;
-
+    if (u2FrameRate == 30)
+    {
+    }
+    else if (u2FrameRate == 15)       
+    {
+    }
+    else 
+    {
+        SENSORDB("Wrong frame rate setting \n");
+    }
+    GC2145MIPI_VEDIO_encode_mode = KAL_TRUE; 
+        
     return TRUE;
 }
 

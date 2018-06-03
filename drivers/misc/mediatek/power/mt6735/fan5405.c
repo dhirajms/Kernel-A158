@@ -1,15 +1,4 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+//zhanyoufei@wind-mobi.com 20161110 begin
 #include <linux/types.h>
 #include <linux/init.h>		/* For init/exit macros */
 #include <linux/module.h>	/* For MODULE_ marcros  */
@@ -21,44 +10,32 @@
 #include <linux/of_irq.h>
 #include <linux/of_address.h>
 #endif
+
 #include <mt-plat/charging.h>
 #include "fan5405.h"
-
-/*added by luhongjiang ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-#if 0
-#include <ontim/ontim_dev_dgb.h>
-static  char charge_ic_vendor_name[50] = "fan5405";
-DEV_ATTR_DECLARE(charge_ic)
-DEV_ATTR_DEFINE("vendor", charge_ic_vendor_name)
-DEV_ATTR_DECLARE_END;
-ONTIM_DEBUG_DECLARE_AND_INIT(charge_ic, charge_ic, 8);
-#endif
-
+#include <mach/mt_charging.h>
+#ifdef CONFIG_OF
+#else
 #define fan5405_SLAVE_ADDR_WRITE   0xD4
 #define fan5405_SLAVE_ADDR_READ    0xD5
-
-#ifdef FAN5405_BUSNUM
-#undef FAN5405_BUSNUM
 #endif
-#define FAN5405_BUSNUM	3
-
 static struct i2c_client *new_client;
 static const struct i2c_device_id fan5405_i2c_id[] = { {"fan5405", 0}, {} };
 
+kal_bool chargin_hw_init_done = KAL_FALSE;
 static int fan5405_driver_probe(struct i2c_client *client, const struct i2c_device_id *id);
 
 #ifdef CONFIG_OF
 static const struct of_device_id fan5405_of_match[] = {
-	{.compatible = "fan5405",},
+	{.compatible = "mediatek,SWITHING_CHARGER",},
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, fan5405_of_match);
 #endif
-
 static struct i2c_driver fan5405_driver = {
 	.driver = {
-		   .name = "fan5405",
+		   .name = "SWITHING_CHARGER",
 #ifdef CONFIG_OF
 		   .of_match_table = fan5405_of_match,
 #endif
@@ -66,7 +43,6 @@ static struct i2c_driver fan5405_driver = {
 	.probe = fan5405_driver_probe,
 	.id_table = fan5405_i2c_id,
 };
-
 /**********************************************************
   *
   *   [Global Variable]
@@ -76,7 +52,7 @@ unsigned char fan5405_reg[fan5405_REG_NUM] = { 0 };
 
 static DEFINE_MUTEX(fan5405_i2c_access);
 
-int g_fan5405_hw_exist = -1;
+int g_fan5405_hw_exist = 0;
 
 /**********************************************************
   *
@@ -155,7 +131,7 @@ unsigned int fan5405_read_interface(unsigned char RegNum, unsigned char *val, un
 	fan5405_reg &= (MASK << SHIFT);
 	*val = (fan5405_reg >> SHIFT);
 
-	battery_log(BAT_LOG_CRTI, "[fan5405_read_interface] val=0x%x\n", *val);
+	battery_log(BAT_LOG_FULL, "[fan5405_read_interface] val=0x%x\n", *val);
 
 	return ret;
 }
@@ -177,7 +153,6 @@ unsigned int fan5405_config_interface(unsigned char RegNum, unsigned char val, u
 		/* RESET bit */
 	} else if (RegNum == fan5405_CON4) {
 		fan5405_reg &= ~0x80;	/* RESET bit read returs 1, so clear it */
-		battery_log(BAT_LOG_CRTI, "[fan5405_config_interface] line:%d\n", __LINE__);
 	}
 
 	ret = fan5405_write_byte(RegNum, fan5405_reg);
@@ -545,10 +520,11 @@ void fan5405_hw_component_detect(void)
 
 	ret = fan5405_read_interface(0x03, &val, 0xFF, 0x0);
 
-	if (val == 0x94)
+	if (val == 0)
 		g_fan5405_hw_exist = 0;
 	else
 		g_fan5405_hw_exist = 1;
+
 	battery_log(BAT_LOG_CRTI, "[fan5405_hw_component_detect] exist=%d, Reg[03]=0x%x\n", g_fan5405_hw_exist, val);
 }
 
@@ -562,7 +538,6 @@ int is_fan5405_exist(void)
 void fan5405_dump_register(void)
 {
 	int i = 0;
-
 	battery_log(BAT_LOG_CRTI, "[fan5405] ");
 	for (i = 0; i < fan5405_REG_NUM; i++) {
 		fan5405_read_byte(i, &fan5405_reg[i]);
@@ -573,20 +548,13 @@ void fan5405_dump_register(void)
 
 static int fan5405_driver_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
-	int ret = 0;
-
 	new_client = client;
+
 	fan5405_hw_component_detect();
 	fan5405_dump_register();
+	chargin_hw_init_done = KAL_TRUE;
 
-	if (is_fan5405_exist() == 0)
-		chargin_hw_init_done = KAL_TRUE;
-	else
-		ret = -1;
-
-	battery_log(BAT_LOG_CRTI, "fan5405_driver_probe  line=%d\n", __LINE__);
-
-	return ret;
+	return 0;
 }
 
 /**********************************************************
@@ -605,49 +573,30 @@ static ssize_t store_fan5405_access(struct device *dev, struct device_attribute 
 				    const char *buf, size_t size)
 {
 	int ret = 0;
-	char *pvalue = NULL, *addr = NULL;
-	char temp_buf[32];
+	char *pvalue = NULL, *addr, *val;
 	unsigned int reg_value = 0;
 	unsigned int reg_address = 0;
 
 	battery_log(BAT_LOG_CRTI, "[store_fan5405_access]\n");
-	strncpy(temp_buf, buf, sizeof(temp_buf) - 1);
-	temp_buf[sizeof(temp_buf) - 1] = '\0';
-	pvalue = temp_buf;
 
-	if (size != 0) {
+	if (buf != NULL && size != 0) {
+
+		pvalue = (char *)buf;
 		if (size > 3) {
 			addr = strsep(&pvalue, " ");
-			if (addr == NULL) {
-				battery_log(BAT_LOG_CRTI, "[%s] format error\n", __func__);
-				return -EINVAL;
-			}
-			ret = kstrtou32(addr, 16, &reg_address);
-			if (ret) {
-				battery_log(BAT_LOG_CRTI, "[%s] format error, ret = %d\n", __func__, ret);
-				return ret;
-			}
+			ret = kstrtou32(addr, 16, (unsigned int *)&reg_address);
+		} else
+			ret = kstrtou32(pvalue, 16, (unsigned int *)&reg_address);
 
-			if (pvalue == NULL) {
-				battery_log(BAT_LOG_CRTI, "[%s] format error\n", __func__);
-				return -EINVAL;
-			}
-			ret = kstrtou32(pvalue, 16, &reg_value);
-			if (ret) {
-				battery_log(BAT_LOG_CRTI, "[%s] format error, ret = %d\n", __func__, ret);
-				return ret;
-			}
+		if (size > 3) {
+			val = strsep(&pvalue, " ");
+			ret = kstrtou32(val, 16, (unsigned int *)&reg_value);
 
 			battery_log(BAT_LOG_CRTI,
 			    "[store_fan5405_access] write fan5405 reg 0x%x with value 0x%x !\n",
 			     reg_address, reg_value);
 			ret = fan5405_config_interface(reg_address, reg_value, 0xFF, 0x0);
 		} else {
-			ret = kstrtou32(pvalue, 16, &reg_address);
-			if (ret) {
-				battery_log(BAT_LOG_CRTI, "[%s] format error, ret = %d\n", __func__, ret);
-				return ret;
-			}
 			ret = fan5405_read_interface(reg_address, &g_reg_value_fan5405, 0xFF, 0x0);
 			battery_log(BAT_LOG_CRTI,
 			    "[store_fan5405_access] read fan5405 reg 0x%x with value 0x%x !\n",
@@ -684,17 +633,9 @@ static struct platform_driver fan5405_user_space_driver = {
 	},
 };
 
-static struct i2c_board_info i2c_fan5405 __initdata = { I2C_BOARD_INFO("fan5405",
-							(fan5405_SLAVE_ADDR_WRITE>>1))};
 static int __init fan5405_init(void)
 {
 	int ret = 0;
-	struct device_node *node = of_find_compatible_node(NULL, NULL, "fan5405");
-
-	battery_log(BAT_LOG_CRTI, "[fan5405_init] init start\n");
-
-	if (!node)
-		i2c_register_board_info(FAN5405_BUSNUM, &i2c_fan5405, 1);
 
 	if (i2c_add_driver(&fan5405_driver) != 0) {
 		battery_log(BAT_LOG_CRTI,
@@ -731,3 +672,4 @@ subsys_initcall(fan5405_init);
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("I2C fan5405 Driver");
 MODULE_AUTHOR("James Lo<james.lo@mediatek.com>");
+//zhanyoufei@wind-mobi.com 20161110 end

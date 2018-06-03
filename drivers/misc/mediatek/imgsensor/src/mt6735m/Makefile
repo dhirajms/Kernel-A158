@@ -11,8 +11,17 @@
 # GNU General Public License for more details.
 #
 
+#
+# Makefile for misc devices that really don't fit anywhere else.
+#
+
+
+
 define FILTER_PROJECT_DRV
-ifeq ($(wildcard $(srctree)/drivers/misc/mediatek/imgsensor/src/$(MTK_PLATFORM)/camera_project/$(ARCH_MTK_PROJECT)/$(1)),)
+# wangkangmin@wind-mobi.com 20161108 begin
+ifeq ($(wildcard $(srctree)/drivers/misc/mediatek/imgsensor/src/mt6735m/camera_project/$(ARCH_MTK_PROJECT)/$(1)),)
+#ifeq ($(wildcard $(srctree)/drivers/misc/mediatek/imgsensor/src/$(MTK_PLATFORM)/camera_project/$(ARCH_MTK_PROJECT)/$(1)),)
+# wangkangmin@wind-mobi.com 20161108 end
 platform_drv += $(1)
 else
 project_drv += camera_project/$(ARCH_MTK_PROJECT)/$(1)
@@ -22,6 +31,7 @@ endef
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 ARCH_MTK_PROJECT := $(subst ",,$(CONFIG_ARCH_MTK_PROJECT))
 
+ifneq ($(CONFIG_MTK_IMGSENSOR),m)
 obj-y				+= kd_sensorlist.o
 
 $(info -= project path  $(srctree)/drivers/misc/mediatek/imgsensor/src/$(MTK_PLATFORM)/camera_project/$(ARCH_MTK_PROJECT)/ =-)
@@ -37,24 +47,45 @@ $(foreach drv,$(subst $\",,$(CONFIG_CUSTOM_KERNEL_IMGSENSOR)),$(eval $(call FILT
 custom_kernel_imgsensor_by_platform := $(addsuffix /, $(shell echo $(platform_drv)))
 custom_kernel_imgsensor_by_project := $(addsuffix /, $(shell echo $(project_drv)))
 
-# Vanzo:wangfei on: Wed, 12 Nov 2014 21:06:42 +0800
-# for compatible the old style ,so use CUSTOM_KERNEL_IMGSENSOR
-custom_kernel_imgsensor := $(addsuffix /, $(shell echo $(CUSTOM_KERNEL_IMGSENSOR)))
+obj-y += $(custom_kernel_imgsensor_by_platform)
+obj-y += $(custom_kernel_imgsensor_by_project)
 
-ifeq ($(custom_kernel_imgsensor),)
-# End of Vanzo:wangfei
-    $(foreach drv,$(subst $\",,$(CONFIG_CUSTOM_KERNEL_IMGSENSOR)),$(eval $(call FILTER_PROJECT_DRV,$(drv))))
-    custom_kernel_imgsensor := $(addsuffix /, $(shell echo $(platform_drv)))
-# Vanzo:wangfei on: Thu, 13 Nov 2014 16:15:59 +0800
-# added for project config prio the defconfig
-endif
-# End of Vanzo:wangfei
-# Vanzo:yucheng on: Sat, 16 Jan 2016 17:58:29 +0800
-# Modified for camera customization
-#obj-y += $(custom_kernel_imgsensor_by_platform)
-#obj-y += $(custom_kernel_imgsensor_by_project)
-
-obj-y += $(custom_kernel_imgsensor)
-# End of Vanzo: yucheng
 $(info imgsensor drv by platform $(platform_drv))
 $(info imgsensor drv by project $(project_drv))
+
+else
+$(info IMGSENSOR USE MODULE)
+define DRV_FILE_BY_PLATFORM
+drv_path+=$(addprefix $(addsuffix /,$(1)),$(notdir $(wildcard  $(srctree)/drivers/misc/mediatek/imgsensor/src/mt6735m/$(1)/*.c)))
+endef
+
+define DRV_FILE_BY_PROJECT
+drv_path+=$(addprefix $(addsuffix /,$(1)),$(notdir $(wildcard  $(srctree)/drivers/misc/mediatek/imgsensor/src/$(MTK_PLATFORM)/camera_project/$(ARCH_MTK_PROJECT)/$(1)/*.c)))
+endef
+
+ModFiles:=kd_sensorlist.o
+
+$(info -= project path  $(srctree)/drivers/misc/mediatek/imgsensor/src/$(MTK_PLATFORM)/camera_project/$(ARCH_MTK_PROJECT)/ =-)
+
+ifneq ($(wildcard $(srctree)/drivers/misc/mediatek/imgsensor/src/mt6735m/camera_project/$(ARCH_MTK_PROJECT)/camera_hw),)
+ModFiles				+= camera_project/$(ARCH_MTK_PROJECT)/camera_hw/kd_camera_hw.o
+$(info by porject kd_camera_hw)
+else
+ModFiles                           += camera_hw/kd_camera_hw.o
+endif
+
+$(foreach drv,$(subst $\",,$(CONFIG_CUSTOM_KERNEL_IMGSENSOR)),$(eval $(call FILTER_PROJECT_DRV,$(drv))))
+custom_kernel_imgsensor_by_platform := $(platform_drv)
+
+ifeq ($(project_drv),)
+$(foreach drv,$(custom_kernel_imgsensor_by_platform), $(eval $(call DRV_FILE_BY_PLATFORM,$(drv))))
+else
+$(foreach drv,$(project_drv), $(eval $(call DRV_FILE_BY_PROJECT,$(drv))))
+endif
+
+ModFiles+=$(subst .c,.o,$(drv_path))
+obj-m				+= ImgSenMod.o
+ImgSenMod-objs:= $(ModFiles)
+$(info imgsensor drv by platform $(platform_drv))
+$(info imgsensor drv by project $(project_drv))
+endif

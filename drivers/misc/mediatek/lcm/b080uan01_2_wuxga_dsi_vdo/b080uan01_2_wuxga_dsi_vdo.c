@@ -114,7 +114,6 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->height = FRAME_HEIGHT;
 	params->dsi.mode   = SYNC_EVENT_VDO_MODE;
 
-	params->density = 280;
 	/* DSI */
 	/* Command mode setting */
 	params->dsi.LANE_NUM = LCM_FOUR_LANE;

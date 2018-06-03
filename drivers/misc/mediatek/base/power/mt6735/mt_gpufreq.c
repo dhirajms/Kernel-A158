@@ -418,9 +418,6 @@ static unsigned int _mt_gpufreq_get_dvfs_table_type(void)
 #else
 			return 2;	/* 35P+ 650M */
 #endif
-		case 0x54:
-		case 0x55:
-			return 3;	/* 37: 550M */
 		default:
 			break;
 		}
@@ -2748,21 +2745,10 @@ static ssize_t mt_gpufreq_fixed_freq_proc_write(struct file *file, const char __
 			mt_gpufreq_fixed_freq_state = false;
 			mt_gpufreq_fixed_frequency = 0;
 		} else {
-			int i, found = 0;
-
-			for (i = 0; i < mt_gpufreqs_num; i++) {
-				if (fixed_freq == mt_gpufreqs[i].gpufreq_khz) {
-					found = 1;
-					break;
-				}
-			}
-
-			if (found == 1) {
-				_mt_gpufreq_set_cur_freq(fixed_freq);
-				mt_gpufreq_fixed_freq_state = true;
-				mt_gpufreq_fixed_frequency = fixed_freq;
-				g_cur_gpu_OPPidx = 0;	/* keep Max Vcore */
-			}
+			_mt_gpufreq_set_cur_freq(fixed_freq);
+			mt_gpufreq_fixed_freq_state = true;
+			mt_gpufreq_fixed_frequency = fixed_freq;
+			g_cur_gpu_OPPidx = 0;	/* keep Max Vcore */
 		}
 		mutex_unlock(&mt_gpufreq_lock);
 	} else

@@ -122,10 +122,6 @@ struct tpd_dts_info {
 	int use_tpd_button;
 	int tpd_key_num;
 	int tpd_key_local[4];
-/* Vanzo:yangzhihong on: Tue, 19 Apr 2016 19:57:57 +0800
- */
-    int tpd_switch_vkey;
-// End of Vanzo:yangzhihong
 	struct tpd_key_dim_local tpd_key_dim_local[4];
 	struct tpd_filter_t touch_filter;
 };
@@ -164,12 +160,6 @@ extern void tpd_get_dts_info(void);
 #define GTP_INT_PORT    1
 extern void tpd_gpio_as_int(int pin);
 extern void tpd_gpio_output(int pin, int level);
-/* Vanzo:yuntaohe on: Mon, 11 Jan 2016 14:15:51 +0800
- */
-#ifndef CONFIG_TPD_POWER_SOURCE_VIA_VGP
-extern void tpd_ldo_power_enable(bool en);
-#endif
-// End of Vanzo:yuntaohe
 extern struct of_device_id touch_of_match[];
 extern  int   tpd_device_init(void);
 extern void  tpd_device_exit(void);
@@ -193,88 +183,4 @@ void _tpd_switch_single_mode(void);
 void _tpd_switch_multiple_mode(void);
 void _tpd_switch_sleep_mode(void);
 void _tpd_switch_normal_mode(void);
-
-
-/* Vanzo:yangzhihong on: Thu, 25 Feb 2016 20:26:13 +0800
- */
-#define CFG_TPD_MAX_TOUCH_NUM   5
-#define CFG_TPD_USE_BUTTON      1
-
-#if CFG_TPD_USE_BUTTON
-#if (defined(WVGA) || defined(CU_WVGA) || defined(CMCC_WVGA) || defined(CMCC_LTE_WVGA))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_BACK, KEY_HOMEPAGE, KEY_MENU, 0}
-#define CFG_TPD_KEYS_DIM            {{60,870,60,50},{180,870,60,50},{300,870,60,50},{420,870,60,50}}
-#define CFG_TPD_WIDTH               480
-#define CFG_TPD_HEIGHT              800
-
-#elif (defined(FWVGA) || defined(CU_FWVGA) || defined(CMCC_FWVGA) || defined(CMCC_LTE_FWVGA))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_BACK, KEY_HOMEPAGE, KEY_MENU, 0}
-#define CFG_TPD_KEYS_DIM            {{60,920,60,50},{180,920,60,50},{300,920,60,50},{420,920,60,50}}
-#define CFG_TPD_WIDTH               480
-#define CFG_TPD_HEIGHT              854
-
-#elif (defined(LFWVGA) || defined(CU_LFWVGA) || defined(CMCC_LFWVGA) || defined(CMCC_LTE_LFWVGA))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_BACK, KEY_HOMEPAGE, KEY_MENU, 0}
-#define CFG_TPD_KEYS_DIM            {{60,1030,60,50},{180,1030,60,50},{300,1030,60,50},{420,1030,60,50}}
-#define CFG_TPD_WIDTH               480
-#define CFG_TPD_HEIGHT              960
-
-#elif (defined(QHD) || defined(CU_QHD) || defined(CMCC_QHD) || defined(CMCC_LTE_QHD))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_BACK, KEY_HOMEPAGE, KEY_MENU, 0}
-#define CFG_TPD_KEYS_DIM            {{85,1030,60,50},{185,1030,60,50},{350,1030,60,50},{500,1030,60,50}}
-#define CFG_TPD_WIDTH               540
-#define CFG_TPD_HEIGHT              960
-
-#elif (defined(HD) || defined(HD720) || defined(CU_HD720) || defined(CMCC_HD720)|| defined(CMCC_LTE_HD720))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_MENU, KEY_HOMEPAGE, KEY_BACK, 0}
-#define CFG_TPD_KEYS_DIM            {{90,1350,60,50},{270,1350,60,50},{430,1350,60,50},{630,1350,60,50}}
-#define CFG_TPD_WIDTH               720
-#define CFG_TPD_HEIGHT              1280
-
-#elif (defined(FHD) || defined(CU_FHD) || defined(CMCC_FHD) || defined(CMCC_LTE_FHD))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_BACK, KEY_HOMEPAGE, KEY_MENU, 0}
-#define CFG_TPD_KEYS_DIM            {{200,2100,100,100},{500,2100,100,100},{800,2100,100,100}}
-#define CFG_TPD_WIDTH               1080
-#define CFG_TPD_HEIGHT              1920
-
-#elif (defined(QVGA)|| defined(CU_QVGA) || defined(CMCC_QVGA) || defined(CMCC_LTE_QVGA))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_MENU, KEY_HOMEPAGE, KEY_BACK, 0}
-#define CFG_TPD_KEYS_DIM            {{40,400,60,50},{80,400,60,50},{160,400,60,50},{280,400,60,50}}
-#define CFG_TPD_WIDTH               240
-#define CFG_TPD_HEIGHT              320
-
-#elif (defined(LQHD))
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_BACK, KEY_HOMEPAGE, KEY_MENU, 0}
-#define CFG_TPD_KEYS_DIM            {{50,1030,60,50},{185,1030,60,50},{350,1030,60,50},{500,1030,60,50}}
-#define CFG_TPD_WIDTH               540
-#define CFG_TPD_HEIGHT              960
-
-#else
-
-#define CFG_TPD_KEY_COUNT           4
-#define CFG_TPD_KEYS                {KEY_BACK, KEY_HOMEPAGE, KEY_MENU, 0}
-#define CFG_TPD_KEYS_DIM            {{60,920,60,50},{180,920,60,50},{300,920,60,50},{420,920,60,50}}
-#define CFG_TPD_WIDTH               480
-#define CFG_TPD_HEIGHT              854
-
-#endif
-#endif /*CFG_TPD_USE_BUTTON*/
-
-// End of Vanzo:yangzhihong
 #endif

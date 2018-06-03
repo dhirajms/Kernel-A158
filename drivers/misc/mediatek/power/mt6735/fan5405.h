@@ -1,15 +1,4 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+//zhanyoufei@wind-mobi.com 20161110 begin
 /*****************************************************************************
 *
 * Filename:
@@ -142,9 +131,7 @@
   *   [Extern Function]
   *
   *********************************************************/
-extern kal_bool chargin_hw_init_done;
 /* CON0---------------------------------------------------- */
-extern int is_fan5405_exist(void);
 extern void fan5405_set_tmr_rst(unsigned int val);
 extern unsigned int fan5405_get_otg_status(void);
 extern void fan5405_set_en_stat(unsigned int val);
@@ -188,3 +175,4 @@ extern unsigned int fan5405_read_interface(unsigned char RegNum, unsigned char *
 extern unsigned int fan5405_config_interface(unsigned char RegNum, unsigned char val,
 	unsigned char MASK, unsigned char SHIFT);
 #endif				/* _fan5405_SW_H_ */
+//zhanyoufei@wind-mobi.com 20161110 end

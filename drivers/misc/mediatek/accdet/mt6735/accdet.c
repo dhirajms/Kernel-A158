@@ -455,7 +455,7 @@ static void accdet_eint_work_callback(struct work_struct *work)
 			ACCDET_DEBUG("[Accdet] TS3A225E Detection sequence completed without successful!\n");
 		}
 #endif
-
+		msleep(500);
 		accdet_init();	/* do set pwm_idle on in accdet_init*/
 
 #ifdef CONFIG_ACCDET_PIN_RECOGNIZATION

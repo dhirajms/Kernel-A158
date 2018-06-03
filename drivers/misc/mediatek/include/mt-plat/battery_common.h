@@ -62,7 +62,11 @@
 #define BATTERY_UNDER_VOL		(2)
 #define BATTERY_OVER_TEMP		(3)
 #define ADC_SAMPLE_TIMES        (5)
-
+//zhanyoufei@wind-mobi.com 20161121 begin
+#ifdef CONFIG_WIND_BATTERY_MODIFY
+#define charger_UNDER_VOL     (6)
+#endif
+//zhanyoufei@wind-mobi.com 20161121 end
 /*****************************************************************************
  *  Pulse Charging State
  ****************************************************************************/
@@ -204,7 +208,6 @@ typedef struct {
 	signed int charger_protect_status;
 	signed int ICharging;
 	signed int IBattery;
-	signed int CURRENT_NOW;
 	signed int temperature;
 	signed int temperatureR;
 	signed int temperatureV;
@@ -335,7 +338,7 @@ extern kal_bool ta_cable_out_occur;
 extern kal_bool is_ta_connect;
 extern struct wake_lock TA_charger_suspend_lock;
 #endif
-extern bool gDisableGM;
+
 
 /*****************************************************************************
  *  Extern Function
@@ -390,7 +393,7 @@ extern PMU_STATUS do_jeita_state_machine(void);
 #ifdef CONFIG_MTK_POWER_EXT_DETECT
 extern kal_bool bat_is_ext_power(void);
 #endif
-extern signed int gFG_capacity_by_c;
+
 extern int g_platform_boot_mode;
 extern bool mt_usb_is_device(void);
 #if defined(CONFIG_USB_MTK_HDRC) || defined(CONFIG_USB_MU3D_DRV)

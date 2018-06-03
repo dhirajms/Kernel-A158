@@ -66,7 +66,7 @@ static void capture_setting(kal_uint16 currefps);
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 
-static struct imgsensor_info_struct imgsensor_info = {
+static imgsensor_info_struct imgsensor_info = {
 	.sensor_id = HI545MIPI_SENSOR_ID,	/* record sensor id defined in Kd_imgsensor.h */
 
 	.checksum_value = 0x55e2a82f,	/* checksum value for Camera Auto Test, 0x40aeb1f5 */
@@ -96,49 +96,49 @@ static struct imgsensor_info_struct imgsensor_info = {
 		.max_framerate = 300,
 		},
 	.cap1 = {
-		.pclk = 176000000,
-		.linelength = 2880,
-		.framelength = 2017,
-		.startx = 0,
-		.starty = 0,
-		.grabwindow_width = 2592,
-		.grabwindow_height = 1944,
-		.mipi_data_lp2hs_settle_dc = 14,
-		.max_framerate = 300,
-		},
+		 .pclk = 176000000,
+		 .linelength = 2880,
+		 .framelength = 2017,
+		 .startx = 0,
+		 .starty = 0,
+		 .grabwindow_width = 2592,
+		 .grabwindow_height = 1944,
+		 .mipi_data_lp2hs_settle_dc = 14,
+		 .max_framerate = 300,
+		 },
 	.normal_video = {
-		.pclk = 176000000,
-		.linelength = 2880,
-		.framelength = 2017,
-		.startx = 0,
-		.starty = 0,
-		.grabwindow_width = 1296,
-		.grabwindow_height = 972,
-		.mipi_data_lp2hs_settle_dc = 14,
-		.max_framerate = 300,
-		},
+			 .pclk = 176000000,
+			 .linelength = 2880,
+			 .framelength = 2017,
+			 .startx = 0,
+			 .starty = 0,
+			 .grabwindow_width = 1296,
+			 .grabwindow_height = 972,
+			 .mipi_data_lp2hs_settle_dc = 14,
+			 .max_framerate = 300,
+			 },
 	.hs_video = {
-		.pclk = 176000000,
-		.linelength = 2880,
-		.framelength = 506,
-		.startx = 0,
-		.starty = 0,
-		.grabwindow_width = 640,
-		.grabwindow_height = 480,
-		.mipi_data_lp2hs_settle_dc = 14,
-		.max_framerate = 1200,
-		},
+		     .pclk = 176000000,
+		     .linelength = 2880,
+		     .framelength = 506,
+		     .startx = 0,
+		     .starty = 0,
+		     .grabwindow_width = 640,
+		     .grabwindow_height = 480,
+		     .mipi_data_lp2hs_settle_dc = 14,
+		     .max_framerate = 1200,
+		     },
 	.slim_video = {
-		.pclk = 176000000,
-		.linelength = 2880,
-		.framelength = 2017,
-		.startx = 0,
-		.starty = 0,
-		.grabwindow_width = 1280,
-		.grabwindow_height = 720,
-		.mipi_data_lp2hs_settle_dc = 14,
-		.max_framerate = 300,
-		},
+		       .pclk = 176000000,
+		       .linelength = 2880,
+		       .framelength = 2017,
+		       .startx = 0,
+		       .starty = 0,
+		       .grabwindow_width = 1280,
+		       .grabwindow_height = 720,
+		       .mipi_data_lp2hs_settle_dc = 14,
+		       .max_framerate = 300,
+		       },
 
 	.margin = 4,		/* sensor framelength & shutter margin */
 	.min_shutter = 1,	/* min shutter */
@@ -167,7 +167,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 };
 
 
-static struct imgsensor_struct imgsensor = {
+static imgsensor_struct imgsensor = {
 	.mirror = IMAGE_V_MIRROR,	/* mirrorflip information */
 	.sensor_mode = IMGSENSOR_MODE_INIT,
 	.shutter = 0x3D0,	/* current shutter */

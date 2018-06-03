@@ -1,15 +1,4 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+//zhanyoufei@wind-mobi.com 20161110 begin
 #include <linux/types.h>
 #include <mt-plat/charging.h>
 #include <mt-plat/upmu_common.h>
@@ -20,17 +9,6 @@
 #include <mach/mt_charging.h>
 #include <mach/mt_pmic.h>
 #include "fan5405.h"
-#ifdef CONFIG_ONTIM_DSM
-#include <ontim/ontim_dsm.h>
-
-struct dsm_dev fan5405_dsm_dev = {
-	.type = OMTIM_DSM_DEV_TYPE_POWER,
-	.id = OMTIM_DSM_DEV_ID_CHARGER,
-	.name = "Fan5405_charger",
-	.buff_size = 1024,
-};
-struct dsm_client *fan5405_dsm_client = NULL;
-#endif
 
 /* ============================================================ // */
 /* Define */
@@ -100,7 +78,7 @@ const u32 VCDT_HV_VTH[] = {
 	    BATTERY_VOLT_10_500000_V
 };
 
-static u32 charging_value_to_parameter(const u32 *parameter, const u32 array_size, const u32 val)
+u32 charging_value_to_parameter(const u32 *parameter, const u32 array_size, const u32 val)
 {
 	if (val < array_size)
 		return parameter[val];
@@ -108,7 +86,7 @@ static u32 charging_value_to_parameter(const u32 *parameter, const u32 array_siz
 	return parameter[0];
 }
 
-static u32 charging_parameter_to_value(const u32 *parameter, const u32 array_size, const u32 val)
+u32 charging_parameter_to_value(const u32 *parameter, const u32 array_size, const u32 val)
 {
 	u32 i;
 
@@ -160,24 +138,23 @@ static u32 charging_hw_init(void *data)
 	mt_set_gpio_mode(wireless_charger_gpio_number, 0);	/* 0:GPIO mode */
 	mt_set_gpio_dir(wireless_charger_gpio_number, 0);	/* 0: input, 1: output */
 #endif
-	battery_log(BAT_LOG_CRTI, "fan5405  charging_hw_init  line=%d\n", __LINE__);
-
-#if defined(HIGH_BATTERY_VOLTAGE_SUPPORT)
-	fan5405_reg_config_interface(0x06, 0x47); /*ISAFE = 1050mA, VSAFE = 4.34V*/
-#else
+	//zhanyoufei@wind-mobi.com 20160222 begin
+	#ifdef HIGH_BATTERY_VOLTAGE_SUPPORT
+	fan5405_reg_config_interface(0x06, 0x77);
+	#else
 	fan5405_reg_config_interface(0x06, 0x70);
-#endif
-
-	fan5405_reg_config_interface(0x00, 0xC0); /*kick chip watch dog*/
-	fan5405_reg_config_interface(0x01, 0xb8); /*TE=1, CE=0, HZ_MODE=0, OPA_MODE=0*/
-	fan5405_reg_config_interface(0x05, 0x03);
+	#endif	
+	//zhanyoufei@wind-mobi.com 20160222 end
+	
+	fan5405_reg_config_interface(0x00, 0xC0);	/* kick chip watch dog */
+	fan5405_reg_config_interface(0x01, 0xb8);	/* TE=1, CE=0, HZ_MODE=0, OPA_MODE=0 */
+	//zhanyoufei@wind-mobi.com 20170223 begin
+	fan5405_reg_config_interface(0x05, 0x04);
+	//zhanyoufei@wind-mobi.com 20170223 end
 	if (!charging_init_flag) {
-		fan5405_reg_config_interface(0x04, 0x19); /*97mA*/
+		fan5405_reg_config_interface(0x04, 0x1A);	/* 146mA */
 		charging_init_flag = KAL_TRUE;
 	}
-#ifdef CONFIG_ONTIM_DSM
-	fan5405_dsm_client = dsm_register_client(&fan5405_dsm_dev);
-#endif
 	return status;
 }
 
@@ -257,11 +234,7 @@ static u32 charging_set_current(void *data)
 		fan5405_set_io_level(0);
 		array_size = GETARRAYNUM(CS_VTH);
 		set_chr_current = bmt_find_closest_level(CS_VTH, array_size, current_value);
-
-	battery_log(BAT_LOG_CRTI, "charging_set_current  set_chr_current=%d\n", set_chr_current);
-
 		register_value = charging_parameter_to_value(CS_VTH, array_size, set_chr_current);
-	battery_log(BAT_LOG_CRTI, "charging_set_current  register_value=%d\n", register_value);
 		fan5405_set_iocharge(register_value);
 	}
 	return status;
@@ -277,14 +250,11 @@ static u32 charging_set_input_current(void *data)
 
 	if (*(u32 *) data > CHARGE_CURRENT_500_00_MA) {
 		register_value = 0x3;
-	battery_log(BAT_LOG_CRTI, "charging_set_input_current  register_value=%d\n", register_value);
 	} else {
 		array_size = GETARRAYNUM(INPUT_CS_VTH);
 		set_chr_current = bmt_find_closest_level(INPUT_CS_VTH, array_size, *(u32 *) data);
-	battery_log(BAT_LOG_CRTI, "charging_set_input_current  set_chr_current=%d\n", set_chr_current);
 		register_value =
 		    charging_parameter_to_value(INPUT_CS_VTH, array_size, set_chr_current);
-	battery_log(BAT_LOG_CRTI, "charging_set_input_current  register_value=%d\n", register_value);
 	}
 
 	fan5405_set_input_charging_current(register_value);
@@ -312,40 +282,6 @@ static u32 charging_get_charging_status(void *data)
 static u32 charging_reset_watch_dog_timer(void *data)
 {
 	u32 status = STATUS_OK;
-
-#ifdef CONFIG_ONTIM_DSM
-	if (fan5405_dsm_client && (fan5405_get_chip_status() == 0x03)) {
-		u8 reg[8];
-		int i;
-
-		for (i = 0; i < 7; i++)
-			fan5405_read_interface(i, &reg[i], 0xFF, 0);
-
-		fan5405_read_interface(0x10, &reg[i], 0xFF, 0);
-		if ((fan5405_dsm_client) && dsm_client_ocuppy(fan5405_dsm_client)) {
-			int error = OMTIM_DSM_CHARGER_ERROR;
-
-			if ((fan5405_dsm_client->dump_buff) && (fan5405_dsm_client->buff_size)
-				&& (fan5405_dsm_client->buff_flag == OMTIM_DSM_BUFF_OK)) {
-				fan5405_dsm_client->used_size = sprintf(fan5405_dsm_client->dump_buff,
-					"Type=%d; ID=%d; error_id=%d;  Charger info:%s; ",
-					fan5405_dsm_client->client_type , fan5405_dsm_client->client_id, error,
-					fan5405_dsm_client->client_name);
-				for (i = 0; i < 7; i++)
-					fan5405_dsm_client->used_size += sprintf(fan5405_dsm_client->dump_buff
-					+ fan5405_dsm_client->used_size, "Reg[0x%x]=0x%x; ", i, reg[i]);
-
-				fan5405_dsm_client->used_size += sprintf(fan5405_dsm_client->dump_buff
-					+ fan5405_dsm_client->used_size, "Reg[0x10]=0x%x; ", reg[i]);
-				fan5405_dsm_client->used_size += sprintf(fan5405_dsm_client->dump_buff
-					+ fan5405_dsm_client->used_size, "\n");
-				dsm_client_notify(fan5405_dsm_client, error);
-			}
-		} else {
-			battery_log(BAT_LOG_CRTI, "%s: dsm ocuppy error!!!", __func__);
-		}
-	 }
-#endif
 
 	fan5405_set_tmr_rst(1);
 
@@ -386,8 +322,10 @@ static u32 charging_get_hv_status(void *data)
 static u32 charging_get_battery_status(void *data)
 {
 	unsigned int status = STATUS_OK;
-
-#if 1 /*defined(CONFIG_POWER_EXT) || defined(CONFIG_MTK_FPGA)*/
+//zhanyoufei@wind-mobi.com 20161216 begin
+//#if 1 //defined(CONFIG_POWER_EXT) || defined(CONFIG_MTK_FPGA)
+#if defined(CONFIG_POWER_EXT) || defined(CONFIG_MTK_FPGA)
+//zhanyoufei@wind-mobi.com 20161216 end
 	*(kal_bool *) (data) = 0;	/* battery exist */
 	battery_log(BAT_LOG_CRTI, "[charging_get_battery_status] battery exist for bring up.\n");
 #else
@@ -433,6 +371,11 @@ static u32 charging_get_charger_type(void *data)
 	*(CHARGER_TYPE *) (data) = STANDARD_HOST;
 #else
 	*(CHARGER_TYPE *) (data) = hw_charging_get_charger_type();
+	//zhanyoufei@wind-mobi.com 20170104 begin
+	if(*(CHARGER_TYPE *) (data) == 1){
+	*(CHARGER_TYPE *) (data) = hw_charging_get_charger_type();
+	}
+	//zhanyoufei@wind-mobi.com 20170104 end
 #endif
 
 	return status;
@@ -527,14 +470,23 @@ charging_hw_init, charging_dump_register, charging_enable, charging_set_cv_volta
 	    charging_get_power_source, charging_get_csdac_full_flag,
 	    charging_set_ta_current_pattern, charging_set_error_state};
 
-s32 fan5405_chr_control_interface(CHARGING_CTRL_CMD cmd, void *data)
+s32 chr_control_interface(CHARGING_CTRL_CMD cmd, void *data)
 {
 	s32 status;
 
-	if ((cmd < CHARGING_CMD_NUMBER) && (charging_func[cmd] != NULL))
+	if (cmd < CHARGING_CMD_NUMBER)
+	{
+		if(charging_func[cmd] != NULL)
 		status = charging_func[cmd] (data);
+		else
+		{
+			battery_log(BAT_LOG_CRTI, "[chr_control_interface]cmd:%d not supported\n", cmd);
+			status = STATUS_UNSUPPORTED;
+		}
+	}
 	else
 		return STATUS_UNSUPPORTED;
 
 	return status;
 }
+//zhanyoufei@wind-mobi.com 20161110 end

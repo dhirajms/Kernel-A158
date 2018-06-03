@@ -954,11 +954,6 @@ static bool pmic_5A_throttle_enable;
 static bool pmic_5A_throttle_on;
 #endif
 
-/* only for 37T */
-#ifdef CONFIG_ARCH_MT6735
-static bool use_fix_lkg_tbl;
-#endif
-
 /*=============================================================*/
 /* Function Implementation									 */
 /*=============================================================*/
@@ -1043,9 +1038,6 @@ static unsigned int _mt_cpufreq_get_cpu_level(void)
 		case 0x41:
 		case 0x42:
 		case 0x43:
-#ifdef CONFIG_ARCH_MT6735
-			use_fix_lkg_tbl = true;
-#endif
 			return CPU_LEVEL_3;	/* 37T: 1.45G */
 		case 0x49:
 			return CPU_LEVEL_4;	/* 37M: 1.1G */
@@ -1053,11 +1045,6 @@ static unsigned int _mt_cpufreq_get_cpu_level(void)
 		case 0x4B:
 			return CPU_LEVEL_3;	/* 35M+: 1.1G */
 		case 0x51:
-		case 0x54:
-		case 0x55:
-#ifdef CONFIG_ARCH_MT6735
-			use_fix_lkg_tbl = true;
-#endif
 			return CPU_LEVEL_1;	/* 37: 1.3G */
 		case 0x52:
 		case 0x53:
@@ -3223,10 +3210,6 @@ static int _mt_cpufreq_sync_opp_tbl_idx(struct mt_cpu_dvfs *p)
 	return ret;
 }
 
-#ifdef CONFIG_ARCH_MT6735
-unsigned int leakage_data[NR_MAX_OPP_TBL] = {638, 594, 535, 424, 344, 279, 227, 183};
-#endif
-
 static void _mt_cpufreq_power_calculation(struct mt_cpu_dvfs *p, int oppidx, int ncpu)
 {
 #ifdef CONFIG_ARCH_MT6753
@@ -3251,14 +3234,7 @@ static void _mt_cpufreq_power_calculation(struct mt_cpu_dvfs *p, int oppidx, int
 	p_dynamic = CA53_REF_POWER;
 
 	/* TODO: Use temp=65 to calculate leakage? check this! */
-#ifdef CONFIG_ARCH_MT6735
-	if (use_fix_lkg_tbl)
-		p_leakage = leakage_data[oppidx];
-	else
-		p_leakage = mt_spower_get_leakage(MT_SPOWER_CPU, p->opp_tbl[oppidx].cpufreq_volt / 100, 65);
-#else
 	p_leakage = mt_spower_get_leakage(MT_SPOWER_CPU, p->opp_tbl[oppidx].cpufreq_volt / 100, 65);
-#endif
 
 	p_dynamic = p_dynamic *
 		(p->opp_tbl[oppidx].cpufreq_khz / 1000) / (ref_freq / 1000) *
@@ -3993,7 +3969,7 @@ static int _mt_cpufreq_init(struct cpufreq_policy *policy)
 
 		cpufreq_info("@%s: limited_power_idx = %d\n", __func__, p->limited_power_idx);
 
-#ifdef CONFIG_MT_BOOT_TIME_CPU_BOOST
+#ifdef CONFIG_CPU_DVFS_SYSTEM_BOOTUP_BOOST
 		p->limited_min_freq_by_kdriver = cpu_dvfs_get_max_freq(p);
 #endif
 
@@ -4121,12 +4097,12 @@ static int _mt_cpufreq_fb_notifier_callback(struct notifier_block *self, unsigne
 
 	FUNC_ENTER(FUNC_LV_MODULE);
 
+	blank = *(int *)evdata->data;
+	cpufreq_ver("@%s: blank = %d, event = %lu\n", __func__, blank, event);
+
 	/* skip if it's not a blank event */
 	if (event != FB_EVENT_BLANK)
 		return 0;
-
-	blank = *(int *)evdata->data;
-	cpufreq_ver("@%s: blank = %d, event = %lu\n", __func__, blank, event);
 
 	switch (blank) {
 	/* LCM ON */
@@ -4958,17 +4934,6 @@ static ssize_t cpufreq_limited_max_freq_by_user_proc_write(struct file *file,
 	return count;
 }
 
-/* cpufreq_limited_by_kdriver */
-static int cpufreq_limited_by_kdriver_proc_show(struct seq_file *m, void *v)
-{
-	struct mt_cpu_dvfs *p = (struct mt_cpu_dvfs *)m->private;
-
-	seq_printf(m, "min = %d KHz\n", p->limited_min_freq_by_kdriver);
-	seq_printf(m, "max = %d KHz\n", p->limited_max_freq_by_kdriver);
-
-	return 0;
-}
-
 /* cpufreq_power_dump */
 static int cpufreq_power_dump_proc_show(struct seq_file *m, void *v)
 {
@@ -5312,7 +5277,6 @@ PROC_FOPS_RW(cpufreq_limited_by_thermal);
 PROC_FOPS_RW(cpufreq_5A_throttle_enable);
 #endif
 PROC_FOPS_RW(cpufreq_limited_max_freq_by_user);
-PROC_FOPS_RO(cpufreq_limited_by_kdriver);
 PROC_FOPS_RO(cpufreq_power_dump);
 PROC_FOPS_RO(cpufreq_ptpod_freq_volt);
 PROC_FOPS_RW(cpufreq_state);
@@ -5353,7 +5317,6 @@ static int _mt_cpufreq_create_procfs(void)
 	const struct pentry cpu_entries[] = {
 		PROC_ENTRY(cpufreq_limited_by_hevc),
 		PROC_ENTRY(cpufreq_limited_max_freq_by_user),
-		PROC_ENTRY(cpufreq_limited_by_kdriver),
 		PROC_ENTRY(cpufreq_ptpod_freq_volt),
 		PROC_ENTRY(cpufreq_state),
 		PROC_ENTRY(cpufreq_oppidx),	/* <-XXX */

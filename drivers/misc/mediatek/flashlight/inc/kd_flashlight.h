@@ -121,7 +121,12 @@ typedef enum {
 
 typedef enum {
 	STATE_LOW,
-	STATE_HIGH
+	STATE_HIGH,
+//luminjie@wind-mobi.com 20170207 begin
+	FLASHLIGHT_BACK,
+	FLASHLIGHT_backpwm,
+	FLASHLIGHT_SUB
+//luminjie@wind-mobi.com 20170207 end
 } FLASHLIGHT_GPIO_STATE_ENUM;
 
 #define FLASHLIGHT_MAGIC 'S'
@@ -157,7 +162,6 @@ typedef enum {
 #define FLASH_IOC_SET_TIME_OUT_TIME_MS  _IOR(FLASHLIGHT_MAGIC, 100, int)
 #define FLASH_IOC_SET_STEP		        _IOR(FLASHLIGHT_MAGIC, 105, int)
 #define FLASH_IOC_SET_DUTY				_IOR(FLASHLIGHT_MAGIC, 110, int)
-#define FLASH_IOC_SET_DUTY_OFFSET_MA    _IOR(FLASHLIGHT_MAGIC, 111, int)
 #define FLASH_IOC_SET_ONOFF		_IOR(FLASHLIGHT_MAGIC, 115, int)
 #define FLASH_IOC_UNINIT		_IOR(FLASHLIGHT_MAGIC, 120, int)
 
@@ -242,4 +246,15 @@ int flashlight_gpio_init(struct platform_device *pdev);
 int flashlight_gpio_set(int pin, int state);
 int flashlight_gpio_hwen_high(void);
 int flashlight_gpio_hwen_low(void);
+//luminjie@wind-mobi.com 20170208 begin
+int flash_gpio_init(struct platform_device *dev);
+//int flash_gpio_set(int PwrType, int Val);
+int flash_gpio_back_high(void);
+int flash_gpio_back_low(void);
+int flash_gpio_backpwm_high(void);
+int flash_gpio_backpwm_low(void);
+int flash_gpio_sub_high(void);
+int flash_gpio_sub_low(void);
+//luminjie@wind-mobi.com 20170208 end
+
 #endif

@@ -33,16 +33,16 @@
 #include "kd_camera_typedef.h"
 
 
-enum IMGSENSOR_MODE {
+typedef enum {
 	IMGSENSOR_MODE_INIT,
 	IMGSENSOR_MODE_PREVIEW,
 	IMGSENSOR_MODE_CAPTURE,
 	IMGSENSOR_MODE_VIDEO,
 	IMGSENSOR_MODE_HIGH_SPEED_VIDEO,
 	IMGSENSOR_MODE_SLIM_VIDEO,
-};
+} IMGSENSOR_MODE;
 
-struct imgsensor_mode_struct {
+typedef struct imgsensor_mode_struct {
 	kal_uint32 pclk;	/* record different mode's pclk */
 	kal_uint32 linelength;	/* record different mode's linelength */
 	kal_uint32 framelength;	/* record different mode's framelength */
@@ -62,7 +62,7 @@ struct imgsensor_mode_struct {
 } imgsensor_mode_struct;
 
 /* SENSOR PRIVATE STRUCT FOR VARIABLES*/
-struct imgsensor_struct {
+typedef struct imgsensor_struct {
 	kal_uint8 mirror;	/* mirrorflip information */
 
 	kal_uint8 sensor_mode;	/* record IMGSENSOR_MODE enum value */
@@ -89,15 +89,15 @@ struct imgsensor_struct {
 } imgsensor_struct;
 
 /* SENSOR PRIVATE STRUCT FOR CONSTANT*/
-struct imgsensor_info_struct {
+typedef struct imgsensor_info_struct {
 	kal_uint32 sensor_id;	/* record sensor id defined in Kd_imgsensor.h */
 	kal_uint32 checksum_value;	/* checksum value for Camera Auto Test */
-	struct imgsensor_mode_struct pre;	/* preview scenario relative information */
-	struct imgsensor_mode_struct cap;	/* capture scenario relative information */
-	struct imgsensor_mode_struct cap1;
-	struct imgsensor_mode_struct normal_video;	/* normal video  scenario relative information */
-	struct imgsensor_mode_struct hs_video;	/* high speed video scenario relative information */
-	struct imgsensor_mode_struct slim_video;	/* slim video for VT scenario relative information */
+	imgsensor_mode_struct pre;	/* preview scenario relative information */
+	imgsensor_mode_struct cap;	/* capture scenario relative information */
+	imgsensor_mode_struct cap1;
+	imgsensor_mode_struct normal_video;	/* normal video  scenario relative information */
+	imgsensor_mode_struct hs_video;	/* high speed video scenario relative information */
+	imgsensor_mode_struct slim_video;	/* slim video for VT scenario relative information */
 
 	kal_uint8 ae_shut_delay_frame;	/* shutter delay frame for AE cycle */
 	kal_uint8 ae_sensor_gain_delay_frame;	/* sensor gain delay frame for AE cycle */

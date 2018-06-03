@@ -679,28 +679,6 @@ initrd=0x44000000,0x1000000 loglevel=8 androidboot.hardware=mt6735";
 			compatible = "mediatek, ext_buck_oc-eint";
 			status = "disabled";
 		};
-        fingerprintgd: fingerprintgd@ {
-                                 compatible = "mediatek,goodix-fp";
-                };
-        dtvdrv:dtv_drv{
-            compatible = "mediatek,dtv_drv";
-        };
-        dtv: dtv {
-            compatible = "mediatek, dtv-eint";
-        };
-
-        breathlight:breathlight_drv {
-
-                        compatible = "mediatek,breathlight";
-        };
-
-        vanzo_fp: vanzo_fp {
-            compatible = "mediatek,vanzo-fp";
-        };
-        fingerprint: fingerprint {
-            compatible = "mediatek, fingerprint-eint";
-        };
-
 		swtp: swtp {
 			compatible = "mediatek, swtp-eint";
 		};
@@ -1842,30 +1820,9 @@ initrd=0x44000000,0x1000000 loglevel=8 androidboot.hardware=mt6735";
 			reg = <0x11006000 0x1000>;
 			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_LOW>;
 		};
-		flashlightgpio:gpio_flashlight{
-			compatible = "mediatek, gpio_flashlight";
-		};
-
-		halldriver: hall_driver {
-			compatible = "mediatek, hall_driver";
-		};
-
-		hall: halleint {
-			compatible = "mediatek, HALL-eint";
-		};
-        aw2028_led:aw2028_led_drv {
-
-                        compatible = "mediatek,aw2028_led";
-        };
-        hct_finger: hct_finger{
-                         compatible  = "mediatek,hct_finger";
-        };
 	};
 	lcm: lcm {
 		compatible = "mediatek,lcm";
-	};
-	lcm_mode: lcm_mode {
-			compatible = "mediatek,lcm_mode";
 	};
 
 	/* ATF logger SW IRQ number 281 = 32 + 249 */
@@ -1924,9 +1881,6 @@ initrd=0x44000000,0x1000000 loglevel=8 androidboot.hardware=mt6735";
 		};
 		m_mag_pl@0 {
 			compatible = "mediatek,m_mag_pl";
-		};
-		hall@0 {
-			compatible = "mediatek,hall_sensor";
 		};
 		orientation@0 {
 			compatible = "mediatek,orientation";

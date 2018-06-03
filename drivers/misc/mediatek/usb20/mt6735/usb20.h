@@ -98,23 +98,16 @@ usb_sif,
 usb_acm_temp_device,
 };*/
 #endif
-#if  0
-extern void bq24158_set_opa_mode(kal_uint32 val);
-extern void bq24158_set_otg_pl(kal_uint32 val);
-extern void bq24158_set_otg_en(kal_uint32 val);
-extern kal_uint32 bq24158_config_interface_liao (kal_uint8 RegNum, kal_uint8 val);
-#endif
+
 /* switch charger API*/
 #ifdef CONFIG_MTK_FAN5405_SUPPORT
 extern void fan5405_set_opa_mode(unsigned int val);
 extern void fan5405_set_otg_pl(unsigned int val);
 extern void fan5405_set_otg_en(unsigned int val);
+//zhanyoufei@wind-mobi.com 20161209 begin
+extern int mt_get_gpio_in(int val);
+//zhanyoufei@wind-mobi.com 20161209 end
 extern unsigned int fan5405_reg_config_interface(unsigned char RegNum, unsigned char val);
-#elif defined(CONFIG_MTK_BQ24158_SUPPORT)
-extern void bq24158_set_opa_mode(kal_uint32 val);
-extern void bq24158_set_otg_pl(kal_uint32 val);
-extern void bq24158_set_otg_en(kal_uint32 val);
-extern kal_uint32 bq24158_config_interface_liao (kal_uint8 RegNum, kal_uint8 val);
 #elif defined(CONFIG_MTK_BQ24261_SUPPORT)
 extern void bq24261_set_en_boost(unsigned int val);
 #elif defined(CONFIG_MTK_BQ24296_SUPPORT)

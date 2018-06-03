@@ -1140,9 +1140,7 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 		};
-                smartpa_gpio: smartpa_gpio {
-                        compatible = "mediatek,smartpa_gpio";
-                };
+
 		i2c0:i2c@11007000 {
 			compatible = "mediatek,mt6735m-i2c";
 			cell-index = <0>;
@@ -1204,23 +1202,6 @@
 			vtouch-supply = <&mt_pmic_vgp1_ldo_reg>;
 		};
 
-	 	/*finger satrt add by maowh  */       	
-         	sunwave_fp:sunwave_fp@ {
-			compatible = "mediatek,sunwave-finger";
-		 };
-		 fp_eint:fp_eint{
-           		compatible = "mediatek,fp_eint";
-         	};
-         	/*finger end add by maowh */
-			
-		/*finger satrt by chiponeic */    
-		finger:finger@ {
-			compatible = "mediatek,mtk_finger";
-		};
-		fp_eint_chipone:fp_eint_chipone@{
-           		compatible = "mediatek,fp_eint_chipone";
-         	};
-			
 		accdet: accdet@ {
 			compatible = "mediatek,mt6735-accdet",
 						"mediatek,mt6735m-accdet";
@@ -1263,6 +1244,14 @@
 			gpio-rst = <3>;
 			gpio-eint = <1>;
 			gpio-irq = <2>;
+		};
+		sar:sar@0 {
+			compatible = "mediatek,sarsensor";
+			gpio-irq = <2>;
+		};	
+		dtv:dtv@0 {
+			compatible = "mediatek,dtv";
+			enable-gpio = <83>;
 		};
 		/* NFC end */
 
@@ -1315,7 +1304,7 @@
 			dma = <1>;
 			num_eps = <16>;
 			dma_channels = <8>;
-			drvvbus_gpio = <83 2>;
+			drvvbus_gpio = <64 2>;
 		};
 
 		audio@11220000 {
@@ -1332,7 +1321,7 @@
 			audmiso-gpio = <144 0>;
 			audmosi-gpio = <145 0>;
 			vowclk-gpio = <148 0>;
-			extspkamp-gpio = <117 0>;
+			extspkamp-gpio = <120 0>;
 			i2s1clk-gpio = <80 0>;
 			i2s1dat-gpio = <78 0>;
 			i2s1mclk-gpio = <9 0>;
@@ -1823,57 +1812,11 @@
 			reg = <0x11006000 0x1000>;
 			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_LOW>;
 		};
-                flashlightgpio:gpio_flashlight {
-                        compatible = "mediatek, gpio_flashlight";
-                };
-		hall: halleint {
-			compatible = "mediatek, HALL-eint";
-		};
-        
-		home: homkeyeint {
-			compatible = "mediatek, HOME-eint";
-		};
-        
-        fingerprintgd: fingerprintgd@ {
-                         compatible = "mediatek,goodix-fp";
-        };
-		finger_fpsensor: finger_fpsensor {
-			compatible = "mediatek,finger_fpsensor";			
-			interrupt-parent = <&eintc>;
-			interrupts = <5 2>;
-			debounce = <5 0>;
-			status = "okay";
-
-				};
-        dtvdrv:dtv_drv{
-                         compatible = "mediatek,dtv_drv";
-        };
-        dtv: dtv {
-                         compatible = "mediatek, dtv-eint";
-        };
-
-        aw2028_led:aw2028_led_drv {
-
-                        compatible = "mediatek,aw2028_led";
-        };
-
-        hct_finger: hct_finger{
-                         compatible  = "mediatek,hct_finger";
-        };
-	betterlife_fp: bl_finger@ {
-			compatible = "mediatek,betterlife-fp";
-        };
-        vanzo_fp: vanzo_fp {
-            compatible = "mediatek,vanzo-fp";
-        };
-        fingerprint: fingerprint {
-            compatible = "mediatek, fingerprint-eint";
-        };
-	    };
+	};
 	lcm: lcm {
 		compatible = "mediatek,lcm";
 	};
-            
+
 /* sensor part */
 		hwmsensor@0 {
 			compatible = "mediatek,hwmsensor";
@@ -1932,58 +1875,31 @@
 		mediatek,clkbuf-config = <2 1 1 1>;
 	};
 
-	firmware {
+       firmware {
+
 		android {
 			compatible = "android,firmware";
+
 			fstab {
 				compatible = "android,fstab";
-#ifndef CONFIG_MTK_AB_OTA_UPDATER
-				system {
-					compatible = "android,system";
-					dev = "/dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/system";
-					type = "ext4";
-					mnt_flags = "ro";
-					#ifndef CONFIG_MTK_DM_VERITY_OFF
-					fsmgr_flags = "wait,verify";
-					#else
-					fsmgr_flags = "wait";
-					#endif
-				};
-#endif
-#ifndef CONFIG_MTK_LATE_MOUNT
+
 				vendor {
 					compatible = "android,vendor";
 					dev = "/dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/vendor";
 					type = "ext4";
-					mnt_flags = "ro";
-#ifndef CONFIG_MTK_AB_OTA_UPDATER
-					#ifndef CONFIG_MTK_DM_VERITY_OFF
-					fsmgr_flags = "wait,verify";
-					#else
+					mnt_flags = "ro,barrier=1,discard";
 					fsmgr_flags = "wait";
-					#endif
-#else
-					#ifndef CONFIG_MTK_DM_VERITY_OFF
-					fsmgr_flags = "wait,slotselect,verify";
-					#else
-					fsmgr_flags = "wait,slotselect";
-					#endif
-#endif
+					status = "ok";
 				};
-#endif
-#ifdef CONFIG_TARGET_COPY_OUT_ODM
-				odm {
-					compatible = "android,odm";
-					dev = "/dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/odm";
+
+				system {
+					compatible = "android,system";
+					dev = "/dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/system";
 					type = "ext4";
-					mnt_flags = "ro";
-#ifndef CONFIG_MTK_AB_OTA_UPDATER
+					mnt_flags = "ro,barrier=1,discard";
 					fsmgr_flags = "wait";
-#else
-					fsmgr_flags = "wait,slotselect";
-#endif
+					status = "ok";
 				};
-#endif
 			};
 		};
 	};

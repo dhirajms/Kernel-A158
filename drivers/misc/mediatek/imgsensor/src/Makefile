@@ -19,14 +19,3 @@ ifeq ($(CONFIG_MTK_CAM_MAX_NUMBER_OF_CAMERA),4)
 subdir-ccflags-y += -DMTK_SUB2_IMGSENSOR
 endif
 
-# Vanzo:wuchuanrong on: Tue, 27 Feb 2018 17:22:47 +0800
-# TODO: design for fake dual camera
-#
-ifeq ($(strip $(VANZO_FEATURE_FAKE_DUAL_CAMERA_BY_NAME)),yes)
-ifneq ($(strip $(CUSTOM_FAKE_CAMERA)),)
-subdir-ccflags-y                += -I$(srctree)/drivers/misc/mediatek/imgsensor/src/fake_camera/inc
-obj-y                           += fake_camera/
-endif
-endif
-
-# End of Vanzo: wuchuanrong
