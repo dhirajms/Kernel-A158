@@ -104,11 +104,7 @@
 #define GPIO_AUDIO_SEL         (GPIO4 | 0x80000000)
 #define GPIO_AUDIO_SEL_M_GPIO   GPIO_MODE_00
 
-/* Vanzo:zhangqingzhan on: Sat, 19 Nov 2016 12:37:13 +0800
- *use ex pa
- */
-//#define AW8736_MODE_CTRL // AW8736 PA output power mode control
-// End of Vanzo: zhangqingzhan
+/* #define AW8736_MODE_CTRL // AW8736 PA output power mode control */
 
 /* static function declaration */
 static bool AudioPreAmp1_Sel(int Mul_Sel);
@@ -162,7 +158,9 @@ static unsigned int pin_mode_extspkamp, pin_mode_extspkamp_2, pin_mode_vowclk, p
 
 
 #ifdef CONFIG_MTK_SPEAKER
-static int Speaker_mode = AUDIO_SPEAKER_MODE_AB;
+//static int Speaker_mode = AUDIO_SPEAKER_MODE_AB;
+//Frontier Speaker is Class D. Modified by Stephen Zhang, BDC, FIH.
+static int Speaker_mode = AUDIO_SPEAKER_MODE_D;
 static unsigned int Speaker_pga_gain = 1;	/* default 0Db. */
 static bool mSpeaker_Ocflag;
 #endif
