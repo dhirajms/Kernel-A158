@@ -294,11 +294,7 @@ static int mtk_pcm_dl2_open(struct snd_pcm_substream *substream)
 
 static int mtk_soc_pcm_dl2_close(struct snd_pcm_substream *substream)
 {
-<<<<<<< HEAD
-	pr_debug("%s\n", __func__);
-=======
 	pr_warn("%s\n", __func__);
->>>>>>> dce83b317... LA55
 
 	if (mPrepareDone == true) {
 		/* stop DAC output */
