@@ -15,8 +15,8 @@ export ARCH=arm
 export MTK_PLATFORM=mt6735
 
 #host and user
-export KBUILD_BUILD_USER="DhirajMS"
-export KBUILD_BUILD_HOST="Treble-A158"
+export KBUILD_BUILD_USER="Loki"
+export KBUILD_BUILD_HOST="AsgardianGod"
 
 
 #get toolchain gcc-4.8
@@ -24,7 +24,7 @@ export KBUILD_BUILD_HOST="Treble-A158"
 #export CROSS_COMPILE=$PWD/gcc4.8/bin/arm-eabi-
 
 #get toolchain gcc-4.9
-#git clone https://github.com/DhirajSurvase/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 gcc4.9
+git clone https://github.com/DhirajSurvase/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 gcc4.9
 export CROSS_COMPILE=$PWD/gcc4.9/bin/arm-linux-androideabi-
 
 #get toolchain gcc-gnu-7.x
